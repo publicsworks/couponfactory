@@ -1,31 +1,25 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Home from './pages/Home';
 import Refer from './pages/Refer';
 import Coupons from './pages/Coupons';
 import Profile from './pages/Profile';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import { AuthContext } from './context/AuthContext';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsConditions from './pages/TermsConditions';
+import ShippingPolicy from './pages/ShippingPolicy';
+import RefundPolicy from './pages/RefundPolicy';
+import ContactUs from './pages/ContactUs';
+import ProtectedRoute from './components/ProtectedRoute';
 
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useContext(AuthContext);
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
-
-  return children;
-};
-
-function App() {
+const App = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
+      {/* Protected Routes */}
       <Route path="/" element={
         <ProtectedRoute>
           <Home />
@@ -46,8 +40,17 @@ function App() {
           <Profile />
         </ProtectedRoute>
       } />
+
+      {/* Public Policy Pages */}
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsConditions />} />
+      <Route path="/shipping" element={<ShippingPolicy />} />
+      <Route path="/refund-policy" element={<RefundPolicy />} />
+      <Route path="/contact" element={<ContactUs />} />
+
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
-}
+};
 
 export default App;
