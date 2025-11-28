@@ -140,7 +140,11 @@ const createCouponOrder = async (req, res) => {
 
     } catch (error) {
         console.error('Error creating coupon order:', error);
-        res.status(500).json({ message: 'Payment initiation failed' });
+        res.status(500).json({
+            message: 'Payment initiation failed',
+            error: error.message,
+            details: error.response?.data
+        });
     }
 };
 
