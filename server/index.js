@@ -24,6 +24,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/premium', premiumRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 const PORT = process.env.PORT || 5000;
 

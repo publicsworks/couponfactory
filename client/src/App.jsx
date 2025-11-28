@@ -12,6 +12,11 @@ import ShippingPolicy from './pages/ShippingPolicy';
 import RefundPolicy from './pages/RefundPolicy';
 import ContactUs from './pages/ContactUs';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
+import AdminDashboard from './pages/AdminDashboard';
+import PaymentSuccess from './pages/PaymentSuccess';
+import PaymentFailure from './pages/PaymentFailure';
+import { AuthContext } from './context/AuthContext';
 
 const App = () => {
   return (
@@ -40,6 +45,17 @@ const App = () => {
           <Profile />
         </ProtectedRoute>
       } />
+
+      {/* Admin Route */}
+      <Route path="/admin" element={
+        <AdminRoute>
+          <AdminDashboard />
+        </AdminRoute>
+      } />
+
+      {/* Payment Routes */}
+      <Route path="/payment/success" element={<PaymentSuccess />} />
+      <Route path="/payment/failure" element={<PaymentFailure />} />
 
       {/* Public Policy Pages */}
       <Route path="/privacy" element={<PrivacyPolicy />} />

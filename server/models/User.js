@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema({
     isPremium: { type: Boolean, default: false },
     instagramUsername: { type: String },
     storyProofUrl: { type: String },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    lastCouponUnlockDate: { type: Date },
     createdAt: { type: Date, default: Date.now }
 });
 

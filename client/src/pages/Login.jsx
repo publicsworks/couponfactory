@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import logo from '../assets/coupon.jpg';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -22,6 +23,9 @@ const Login = () => {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+                <div className="flex justify-center mb-4">
+                    <img src={logo} alt="CouponFactory Logo" className="w-20 h-20 rounded-full object-cover" />
+                </div>
                 <h2 className="text-2xl font-bold mb-6 text-center text-primary">Login to CouponFactory</h2>
                 {error && <div className="bg-red-100 text-red-700 p-3 rounded mb-4">{error}</div>}
                 <form onSubmit={handleSubmit}>

@@ -29,6 +29,19 @@ const registerUser = async (req, res) => {
             referredBy
         });
 
+        // Create Referral Record if referredBy exists
+        if (referredBy) {
+            const referrer = await User.findOne({ referralCode: referredBy });
+            if (referrer) {
+                const Referral = require('../models/Referral');
+                await Referral.create({
+                    referrer: referrer._id,
+                    referredUser: user._id,
+                    status: 'pending'
+                });
+            }
+        }
+
         if (user) {
             res.status(201).json({
                 _id: user._id,

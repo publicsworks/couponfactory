@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import CouponCard from '../components/CouponCard';
 import PremiumCard from '../components/PremiumCard';
@@ -32,18 +33,79 @@ const Home = () => {
         fetchCoupons();
     }, []);
 
-    const handleUnlock = async () => {
-        setUnlocking(true);
+    const [couponStatus, setCouponStatus] = useState({ canUnlock: true, remainingTime: 0 });
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    useEffect(() => {
+        const checkStatus = async () => {
+            try {
+                const { data } = await api.get('/payment/coupon-status');
+                setCouponStatus(data);
+            } catch (error) {
+                console.error('Error fetching coupon status');
+            }
+        };
+        if (user) checkStatus();
+
+        // Check for payment return
+        const orderId = searchParams.get('coupon_order_id');
+        if (orderId) {
+            verifyCouponPayment(orderId);
+        }
+    }, [user, searchParams]);
+
+    const verifyCouponPayment = async (orderId) => {
         try {
-            await api.post('/payment/unlock-coupon', { couponId: 'FREE10' });
-            alert('Coupon Unlocked! ₹10 Cashback credited (Simulated).');
-            // Refresh user data if needed
+            setUnlocking(true);
+            const { data } = await api.post('/payment/verify-coupon', { orderId });
+            if (data.success) {
+                alert('Payment Successful! Coupon Unlocked.');
+                window.location.href = '/'; // Reload to reset params and state
+            } else {
+                alert('Payment Failed.');
+            }
         } catch (error) {
-            console.error(error);
-            alert('Unlock failed or simulated payment error.');
+            console.error('Verification failed', error);
         } finally {
             setUnlocking(false);
         }
+    };
+
+    const handleUnlock = async () => {
+        setUnlocking(true);
+        try {
+            const cashfree = await window.Cashfree({ mode: "production" });
+            const { data } = await api.post('/payment/create-coupon-order');
+
+            if (data.payment_session_id) {
+                cashfree.checkout({
+                    paymentSessionId: data.payment_session_id,
+                    redirectTarget: "_self"
+                });
+            }
+        } catch (error) {
+            console.error('Payment Init Error', error);
+            alert('Failed to start payment');
+            setUnlocking(false);
+        }
+    };
+
+    // Timer Component
+    const Countdown = ({ ms }) => {
+        const [timeLeft, setTimeLeft] = useState(ms);
+
+        useEffect(() => {
+            const timer = setInterval(() => {
+                setTimeLeft(prev => Math.max(0, prev - 1000));
+            }, 1000);
+            return () => clearInterval(timer);
+        }, []);
+
+        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+        return <span className="text-xs font-mono">{hours}h {minutes}m {seconds}s</span>;
     };
 
     return (
@@ -55,13 +117,24 @@ const Home = () => {
                         <CheckCircle size={20} />
                     </div>
                     <h3 className="font-bold text-gray-800 text-sm mb-1">Free Coupon</h3>
-                    <button
-                        onClick={handleUnlock}
-                        disabled={unlocking}
-                        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs py-2 rounded-lg font-semibold shadow-md hover:shadow-lg transition"
-                    >
-                        {unlocking ? 'Processing...' : 'Unlock Now'}
-                    </button>
+
+                    {couponStatus.canUnlock ? (
+                        <button
+                            onClick={handleUnlock}
+                            disabled={unlocking}
+                            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs py-2 rounded-lg font-semibold shadow-md hover:shadow-lg transition"
+                        >
+                            {unlocking ? 'Processing...' : 'Unlock Now (₹10)'}
+                        </button>
+                    ) : (
+                        <button
+                            disabled
+                            className="w-full bg-gray-200 text-gray-500 text-xs py-2 rounded-lg font-semibold cursor-not-allowed flex flex-col items-center"
+                        >
+                            <span>Available Soon</span>
+                            <Countdown ms={couponStatus.remainingTime} />
+                        </button>
+                    )}
                 </div>
 
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
@@ -75,7 +148,7 @@ const Home = () => {
                 </div>
             </div>
 
-            <a href="#" className="block bg-white p-3 rounded-xl shadow-sm border border-gray-100 mb-6 flex items-center justify-between hover:bg-gray-50">
+            <a href="https://www.instagram.com/coupon_factory1?igsh=ZTJ2eHB0YzZzNHYx" target="_blank" rel="noopener noreferrer" className="block bg-white p-3 rounded-xl shadow-sm border border-gray-100 mb-6 flex items-center justify-between hover:bg-gray-50">
                 <div className="flex items-center gap-3">
                     <div className="bg-gradient-to-tr from-yellow-400 to-pink-500 p-0.5 rounded-full">
                         <div className="bg-white p-1 rounded-full">
