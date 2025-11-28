@@ -107,11 +107,7 @@ const unlockCoupon = async (req, res) => {
     }
 };
 
-unlockCoupon,
-    createCouponOrder,
-    verifyCouponPayment,
-    checkCouponStatus
-};
+
 
 // @desc    Create Order for ₹10 Coupon Unlock
 // @route   POST /api/payment/create-coupon-order
@@ -207,4 +203,13 @@ const checkCouponStatus = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Error checking status' });
     }
+};
+
+module.exports = {
+    createOrder,
+    verifyPayment,
+    unlockCoupon,
+    createCouponOrder,
+    verifyCouponPayment,
+    checkCouponStatus
 };
