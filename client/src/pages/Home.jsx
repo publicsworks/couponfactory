@@ -75,7 +75,12 @@ const Home = () => {
         setUnlocking(true);
         try {
             const cashfree = await window.Cashfree({ mode: "production" });
-            const { data } = await api.post('/payment/create-coupon-order');
+            const { data } = await api.post('/payment/create-coupon-order', {
+                amount: 10,
+                customerId: user._id,
+                customerEmail: user.email,
+                customerPhone: user.phone || '9999999999'
+            });
 
             if (data.payment_session_id) {
                 cashfree.checkout({
@@ -142,9 +147,13 @@ const Home = () => {
                         <Instagram size={20} />
                     </div>
                     <h3 className="font-bold text-gray-800 text-sm mb-1">Story Post</h3>
-                    <button className="w-full bg-gray-100 text-gray-700 text-xs py-2 rounded-lg font-semibold hover:bg-gray-200 transition flex items-center justify-center gap-1">
-                        Link <ExternalLink size={12} />
-                    </button>
+                    <a
+                        href="/story-post.png"
+                        download="coupon-factory-story.png"
+                        className="w-full bg-gray-100 text-gray-700 text-xs py-2 rounded-lg font-semibold hover:bg-gray-200 transition flex items-center justify-center gap-1"
+                    >
+                        Download <ExternalLink size={12} />
+                    </a>
                 </div>
             </div>
 

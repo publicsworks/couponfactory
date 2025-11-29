@@ -1,6 +1,9 @@
 const { Cashfree, CFEnvironment } = require('cashfree-pg');
 const User = require('../models/User');
 const crypto = require('crypto');
+const axios = require('axios');
+
+const CF_URL = process.env.CF_URL || (process.env.CASHFREE_ENV === 'PRODUCTION' ? 'https://api.cashfree.com/pg/orders' : 'https://sandbox.cashfree.com/pg/orders');
 
 // Initialize Cashfree Instance
 const cashfree = new Cashfree(
@@ -114,36 +117,45 @@ const unlockCoupon = async (req, res) => {
 // @access  Private
 const createCouponOrder = async (req, res) => {
     try {
-        const userId = req.user._id;
-        const user = await User.findById(userId);
+        const { amount, customerId, customerEmail, customerPhone } = req.body;
 
-        const orderId = `COUPON_${userId}_${Date.now()}`;
-        const amount = 10; // Coupon Unlock Cost
+        if (!amount || !customerId) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
 
-        const request = {
-            order_amount: amount,
-            order_currency: 'INR',
-            order_id: orderId,
-            customer_details: {
-                customer_id: userId.toString(),
-                customer_phone: '9999999999',
-                customer_name: user.name,
-                customer_email: user.email
+        const cfRes = await axios.post(
+            CF_URL,
+            {
+                order_amount: amount,
+                order_currency: "INR",
+                order_id: `COUPON_${customerId}_${Date.now()}`,
+                customer_details: {
+                    customer_id: customerId,
+                    customer_email: customerEmail,
+                    customer_phone: customerPhone,
+                },
+                order_meta: {
+                    return_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/?coupon_order_id={order_id}`,
+                }
             },
-            order_meta: {
-                return_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/?coupon_order_id={order_id}`,
+            {
+                headers: {
+                    "x-client-id": process.env.CASHFREE_APP_ID,
+                    "x-client-secret": process.env.CASHFREE_SECRET_KEY,
+                    "x-api-version": "2022-09-01",
+                    "Content-Type": "application/json",
+                },
             }
-        };
+        );
 
-        const response = await cashfree.PGCreateOrder("2023-08-01", request);
-        res.json(response.data);
+        return res.status(200).json(cfRes.data);
 
-    } catch (error) {
-        console.error('Error creating coupon order:', error);
-        res.status(500).json({
-            message: 'Payment initiation failed',
-            error: error.message,
-            details: error.response?.data
+    } catch (err) {
+        console.error("Cashfree order error:", err.response?.data || err.message);
+        return res.status(500).json({
+            success: false,
+            message: "Payment order create failed",
+            error: err.response?.data || err.message,
         });
     }
 };
