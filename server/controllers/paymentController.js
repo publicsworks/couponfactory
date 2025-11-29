@@ -1,13 +1,13 @@
-const { Cashfree } = require('cashfree-pg');
+const { Cashfree, CFEnvironment } = require('cashfree-pg');
 const User = require('../models/User');
 const crypto = require('crypto');
 
-// Initialize Cashfree
-Cashfree.XClientId = process.env.CASHFREE_APP_ID;
-Cashfree.XClientSecret = process.env.CASHFREE_SECRET_KEY;
-Cashfree.XEnvironment = process.env.CASHFREE_ENV === 'PRODUCTION'
-    ? 'https://api.cashfree.com/pg'
-    : 'https://sandbox.cashfree.com/pg';
+// Initialize Cashfree Instance
+const cashfree = new Cashfree(
+    process.env.CASHFREE_ENV === 'PRODUCTION' ? CFEnvironment.PRODUCTION : CFEnvironment.SANDBOX,
+    process.env.CASHFREE_APP_ID,
+    process.env.CASHFREE_SECRET_KEY
+);
 
 // @desc    Create Payment Order
 // @route   POST /api/payment/create-order
@@ -40,7 +40,7 @@ const createOrder = async (req, res) => {
             }
         };
 
-        const response = await Cashfree.PGCreateOrder("2023-08-01", request);
+        const response = await cashfree.PGCreateOrder("2023-08-01", request);
         res.json(response.data);
 
     } catch (error) {
@@ -56,7 +56,7 @@ const verifyPayment = async (req, res) => {
     try {
         const { orderId } = req.body;
 
-        const response = await Cashfree.PGOrderFetchPayments("2023-08-01", orderId);
+        const response = await cashfree.PGOrderFetchPayments("2023-08-01", orderId);
 
         // Check if any transaction is successful
         const validTransaction = response.data.find(txn => txn.payment_status === 'SUCCESS');
@@ -135,7 +135,7 @@ const createCouponOrder = async (req, res) => {
             }
         };
 
-        const response = await Cashfree.PGCreateOrder("2023-08-01", request);
+        const response = await cashfree.PGCreateOrder("2023-08-01", request);
         res.json(response.data);
 
     } catch (error) {
@@ -154,7 +154,7 @@ const createCouponOrder = async (req, res) => {
 const verifyCouponPayment = async (req, res) => {
     try {
         const { orderId } = req.body;
-        const response = await Cashfree.PGOrderFetchPayments("2023-08-01", orderId);
+        const response = await cashfree.PGOrderFetchPayments("2023-08-01", orderId);
         const validTransaction = response.data.find(txn => txn.payment_status === 'SUCCESS');
 
         if (validTransaction) {
