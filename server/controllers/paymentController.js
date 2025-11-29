@@ -123,21 +123,33 @@ const createCouponOrder = async (req, res) => {
             return res.status(400).json({ message: "Missing required fields" });
         }
 
+        const requestBody = {
+            order_amount: amount,
+            order_currency: "INR",
+            order_id: `COUPON_${customerId}_${Date.now()}`,
+            customer_details: {
+                customer_id: customerId,
+                customer_email: customerEmail,
+                customer_phone: customerPhone,
+            },
+            order_meta: {
+                return_url: `${process.env.CLIENT_URL || 'https://www.couponfactory.shop'}/?coupon_order_id={order_id}`,
+            }
+        };
+
+        console.log('Cashfree Request:', {
+            url: CF_URL,
+            body: requestBody,
+            headers: {
+                "x-client-id": process.env.CASHFREE_APP_ID ? 'SET' : 'MISSING',
+                "x-client-secret": process.env.CASHFREE_SECRET_KEY ? 'SET' : 'MISSING',
+                "x-api-version": "2022-09-01"
+            }
+        });
+
         const cfRes = await axios.post(
             CF_URL,
-            {
-                order_amount: amount,
-                order_currency: "INR",
-                order_id: `COUPON_${customerId}_${Date.now()}`,
-                customer_details: {
-                    customer_id: customerId,
-                    customer_email: customerEmail,
-                    customer_phone: customerPhone,
-                },
-                order_meta: {
-                    return_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/?coupon_order_id={order_id}`,
-                }
-            },
+            requestBody,
             {
                 headers: {
                     "x-client-id": process.env.CASHFREE_APP_ID,
