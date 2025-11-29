@@ -24,7 +24,7 @@ const Refer = () => {
         fetchData();
     }, []);
 
-    const referralLink = `http://localhost:5173/register?ref=${user?.referralCode}`;
+    const referralLink = `${window.location.origin}/register?ref=${user?.referralCode}`;
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(referralLink);

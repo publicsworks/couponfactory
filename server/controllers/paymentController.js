@@ -173,15 +173,28 @@ const createCouponOrder = async (req, res) => {
 };
 
 // @desc    Verify Coupon Payment & Set Cooldown
+// @desc    Verify Coupon Payment & Set Cooldown
 // @route   POST /api/payment/verify-coupon
 // @access  Private
 const verifyCouponPayment = async (req, res) => {
     try {
         const { orderId } = req.body;
-        const response = await cashfree.PGOrderFetchPayments("2023-08-01", orderId);
-        const validTransaction = response.data.find(txn => txn.payment_status === 'SUCCESS');
 
-        if (validTransaction) {
+        const cfRes = await axios.get(
+            `${CF_URL}/${orderId}`,
+            {
+                headers: {
+                    "x-client-id": process.env.CASHFREE_APP_ID,
+                    "x-client-secret": process.env.CASHFREE_SECRET_KEY,
+                    "x-api-version": "2022-09-01",
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        const orderStatus = cfRes.data.order_status;
+
+        if (orderStatus === 'PAID') {
             const user = await User.findById(req.user._id);
 
             // Update last unlock date to NOW
@@ -199,11 +212,11 @@ const verifyCouponPayment = async (req, res) => {
             await user.save();
             res.json({ success: true, message: 'Coupon Unlocked' });
         } else {
-            res.status(400).json({ success: false, message: 'Payment not successful' });
+            res.status(400).json({ success: false, message: 'Payment not successful', status: orderStatus });
         }
     } catch (error) {
-        console.error('Error verifying coupon payment:', error);
-        res.status(500).json({ message: 'Verification failed' });
+        console.error('Error verifying coupon payment:', error.response?.data || error.message);
+        res.status(500).json({ message: 'Verification failed', error: error.message });
     }
 };
 
