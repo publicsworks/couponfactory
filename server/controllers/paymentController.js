@@ -112,15 +112,16 @@ const unlockCoupon = async (req, res) => {
 
 
 
-// @desc    Create Order for ₹10 Coupon Unlock
+// @desc    Create Order for ₹50 Coupon Unlock
 // @route   POST /api/payment/create-coupon-order
 // @access  Private
 const createCouponOrder = async (req, res) => {
     try {
         const { amount, customerId, customerEmail, customerPhone } = req.body;
 
-        if (!amount || !customerId) {
-            return res.status(400).json({ message: "Missing required fields" });
+        // Enforce 50 amount
+        if (amount != 50 || !customerId) {
+            return res.status(400).json({ message: "Invalid amount or missing fields" });
         }
 
         const requestBody = {
@@ -227,22 +228,107 @@ const checkCouponStatus = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
 
-        if (!user.lastCouponUnlockDate) {
-            return res.json({ canUnlock: true });
+        if (user.lastCouponUnlockDate) {
+            // Permanent Unlock logic: If date exists, it's unlocked forever
+            return res.json({
+                canUnlock: false,
+                isUnlocked: true,
+                message: 'Permanently Unlocked'
+            });
         }
 
-        const lastUnlock = new Date(user.lastCouponUnlockDate).getTime();
-        const now = Date.now();
-        const cooldown = 72 * 60 * 60 * 1000; // 72 hours in ms
-
-        if (now - lastUnlock < cooldown) {
-            const remainingTime = cooldown - (now - lastUnlock);
-            return res.json({ canUnlock: false, remainingTime });
-        }
-
-        res.json({ canUnlock: true });
+        return res.json({ canUnlock: true, isUnlocked: false });
     } catch (error) {
         res.status(500).json({ message: 'Error checking status' });
+    }
+};
+
+// @desc    Create Order for Giveaway Entry (₹10)
+// @route   POST /api/payment/create-giveaway-order
+// @access  Private
+const createGiveawayOrder = async (req, res) => {
+    try {
+        const { amount, customerId, customerEmail, customerPhone } = req.body;
+
+        if (!amount || !customerId) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        const requestBody = {
+            order_amount: amount,
+            order_currency: "INR",
+            order_id: `GIVEAWAY_${customerId}_${Date.now()}`,
+            customer_details: {
+                customer_id: customerId,
+                customer_email: customerEmail,
+                customer_phone: customerPhone,
+            },
+            order_meta: {
+                return_url: `${process.env.CLIENT_URL || 'https://www.couponfactory.shop'}/?giveaway_order_id={order_id}`,
+            }
+        };
+
+        console.log('Cashfree Giveaway Request:', {
+            url: CF_URL,
+            body: requestBody
+        });
+
+        const cfRes = await axios.post(
+            CF_URL,
+            requestBody,
+            {
+                headers: {
+                    "x-client-id": process.env.CASHFREE_APP_ID,
+                    "x-client-secret": process.env.CASHFREE_SECRET_KEY,
+                    "x-api-version": "2022-09-01",
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return res.status(200).json(cfRes.data);
+
+    } catch (err) {
+        console.error("Cashfree giveaway order error:", err.response?.data || err.message);
+        return res.status(500).json({
+            success: false,
+            message: "Giveaway order create failed",
+            error: err.response?.data || err.message,
+        });
+    }
+};
+
+// @desc    Verify Giveaway Payment
+// @route   POST /api/payment/verify-giveaway
+// @access  Private
+const verifyGiveawayPayment = async (req, res) => {
+    try {
+        const { orderId } = req.body;
+
+        const cfRes = await axios.get(
+            `${CF_URL}/${orderId}`,
+            {
+                headers: {
+                    "x-client-id": process.env.CASHFREE_APP_ID,
+                    "x-client-secret": process.env.CASHFREE_SECRET_KEY,
+                    "x-api-version": "2022-09-01",
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        const orderStatus = cfRes.data.order_status;
+
+        if (orderStatus === 'PAID') {
+            // Update user's giveaway status
+            await User.findByIdAndUpdate(req.user._id, { hasJoinedGiveaway: true });
+            res.json({ success: true, message: 'Giveaway Entry Confirmed!' });
+        } else {
+            res.status(400).json({ success: false, message: 'Payment not successful', status: orderStatus });
+        }
+    } catch (error) {
+        console.error('Error verifying giveaway payment:', error.response?.data || error.message);
+        res.status(500).json({ message: 'Verification failed', error: error.message });
     }
 };
 
@@ -252,5 +338,7 @@ module.exports = {
     unlockCoupon,
     createCouponOrder,
     verifyCouponPayment,
-    checkCouponStatus
+    checkCouponStatus,
+    createGiveawayOrder,
+    verifyGiveawayPayment
 };

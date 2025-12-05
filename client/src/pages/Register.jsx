@@ -7,6 +7,7 @@ const Register = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
     const { register } = useContext(AuthContext);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -15,6 +16,10 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!agreedToTerms) {
+            setError('You must agree to the Terms and Conditions');
+            return;
+        }
         try {
             await register(name, email, password, referredBy);
             navigate('/');
@@ -68,6 +73,18 @@ const Register = () => {
                             Referred by code: {referredBy}
                         </div>
                     )}
+                    <div className="mb-6 flex items-center">
+                        <input
+                            type="checkbox"
+                            id="terms"
+                            className="mr-2 h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                            checked={agreedToTerms}
+                            onChange={(e) => setAgreedToTerms(e.target.checked)}
+                        />
+                        <label htmlFor="terms" className="text-sm text-gray-700">
+                            I agree to the <Link to="/terms" className="text-primary hover:underline">Terms and Conditions</Link>
+                        </label>
+                    </div>
                     <button
                         type="submit"
                         className="w-full bg-primary text-white py-2 rounded hover:bg-indigo-600 transition duration-200"

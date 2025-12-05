@@ -11,5 +11,7 @@ router.post('/unlock-coupon', protect, unlockCoupon);
 router.post('/create-coupon-order', protect, createCouponOrder);
 router.post('/verify-coupon', protect, verifyCouponPayment);
 router.get('/coupon-status', protect, checkCouponStatus);
+router.post('/create-giveaway-order', protect, createGiveawayOrder);
+router.post('/verify-giveaway', protect, verifyGiveawayPayment);
 
 module.exports = router;

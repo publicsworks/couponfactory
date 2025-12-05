@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     storyProofUrl: { type: String },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     lastCouponUnlockDate: { type: Date },
+    hasJoinedGiveaway: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now }
 });
 

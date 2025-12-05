@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import CouponCard from '../components/CouponCard';
 import PremiumCard from '../components/PremiumCard';
+import GiveawayCard from '../components/GiveawayCard';
+import RedeemInstructionsPopup from '../components/RedeemInstructionsPopup';
 import { Lock, Instagram, ExternalLink, CheckCircle } from 'lucide-react';
 import api from '../utils/api';
 import { AuthContext } from '../context/AuthContext';
@@ -11,6 +13,15 @@ const Home = () => {
     const [coupons, setCoupons] = useState([]);
     const { user, updateUser } = useContext(AuthContext);
     const [unlocking, setUnlocking] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
+
+    useEffect(() => {
+        const hasSeenPopup = sessionStorage.getItem('hasSeenRedeemPopup');
+        if (!hasSeenPopup) {
+            setShowPopup(true);
+            sessionStorage.setItem('hasSeenRedeemPopup', 'true');
+        }
+    }, []);
 
     useEffect(() => {
         const fetchCoupons = async () => {
@@ -33,7 +44,7 @@ const Home = () => {
         fetchCoupons();
     }, []);
 
-    const [couponStatus, setCouponStatus] = useState({ canUnlock: true, remainingTime: 0 });
+    const [couponStatus, setCouponStatus] = useState({ canUnlock: true, isUnlocked: false });
     const [searchParams, setSearchParams] = useSearchParams();
 
     useEffect(() => {
@@ -51,6 +62,11 @@ const Home = () => {
         const orderId = searchParams.get('coupon_order_id');
         if (orderId) {
             verifyCouponPayment(orderId);
+        }
+
+        const giveawayOrderId = searchParams.get('giveaway_order_id');
+        if (giveawayOrderId) {
+            verifyGiveawayPayment(giveawayOrderId);
         }
     }, [user, searchParams]);
 
@@ -71,12 +87,29 @@ const Home = () => {
         }
     };
 
+    const verifyGiveawayPayment = async (orderId) => {
+        try {
+            setUnlocking(true);
+            const { data } = await api.post('/payment/verify-giveaway', { orderId });
+            if (data.success) {
+                alert('Giveaway Entry Confirmed! Good Luck! 🍀');
+                window.location.href = '/';
+            } else {
+                alert('Payment Failed.');
+            }
+        } catch (error) {
+            console.error('Giveaway Verification failed', error);
+        } finally {
+            setUnlocking(false);
+        }
+    };
+
     const handleUnlock = async () => {
         setUnlocking(true);
         try {
             const cashfree = await window.Cashfree({ mode: "production" });
             const { data } = await api.post('/payment/create-coupon-order', {
-                amount: 10,
+                amount: 50,
                 customerId: user._id,
                 customerEmail: user.email,
                 customerPhone: user.phone || '9999999999'
@@ -115,6 +148,7 @@ const Home = () => {
 
     return (
         <Layout>
+            {showPopup && <RedeemInstructionsPopup onClose={() => setShowPopup(false)} />}
             {/* Section 1: Free Coupon & Actions */}
             <div className="grid grid-cols-2 gap-3 mb-6">
                 <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
@@ -123,13 +157,20 @@ const Home = () => {
                     </div>
                     <h3 className="font-bold text-gray-800 text-sm mb-1">Free Coupon</h3>
 
-                    {couponStatus.canUnlock ? (
+                    {couponStatus.isUnlocked ? (
+                        <button
+                            disabled
+                            className="w-full bg-green-500 text-white text-xs py-2 rounded-lg font-semibold cursor-default shadow-md"
+                        >
+                            Unlocked Forever ✅
+                        </button>
+                    ) : couponStatus.canUnlock ? (
                         <button
                             onClick={handleUnlock}
                             disabled={unlocking}
                             className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs py-2 rounded-lg font-semibold shadow-md hover:shadow-lg transition"
                         >
-                            {unlocking ? 'Processing...' : 'Unlock Now (₹10)'}
+                            {unlocking ? 'Processing...' : 'Unlock Now (₹50)'}
                         </button>
                     ) : (
                         <button
@@ -137,7 +178,6 @@ const Home = () => {
                             className="w-full bg-gray-200 text-gray-500 text-xs py-2 rounded-lg font-semibold cursor-not-allowed flex flex-col items-center"
                         >
                             <span>Available Soon</span>
-                            <Countdown ms={couponStatus.remainingTime} />
                         </button>
                     )}
                 </div>
@@ -236,6 +276,9 @@ const Home = () => {
 
             {/* Section 3: Premium Card */}
             <PremiumCard />
+
+            {/* Section 4: Giveaway Card */}
+            <GiveawayCard />
 
         </Layout>
     );
