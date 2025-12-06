@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createOrder, verifyPayment, unlockCoupon, createCouponOrder, verifyCouponPayment, checkCouponStatus } = require('../controllers/paymentController');
+const { createOrder, verifyPayment, unlockCoupon, createCouponOrder, verifyCouponPayment, checkCouponStatus, createGiveawayOrder, verifyGiveawayPayment } = require('../controllers/paymentController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.post('/create-order', protect, createOrder);
