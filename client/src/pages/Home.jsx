@@ -162,7 +162,7 @@ const Home = () => {
                             disabled
                             className="w-full bg-green-500 text-white text-xs py-2 rounded-lg font-semibold cursor-default shadow-md"
                         >
-                            Unlocked Forever ✅
+                            Available Soon
                         </button>
                     ) : couponStatus.canUnlock ? (
                         <button
