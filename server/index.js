@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const compression = require('compression');
+const helmet = require('helmet');
 
 const authRoutes = require('./routes/authRoutes');
 const couponRoutes = require('./routes/couponRoutes');
@@ -15,6 +17,8 @@ const app = express();
 connectDB();
 
 // Middleware
+app.use(helmet());
+app.use(compression());
 app.use(cors());
 app.use(express.json());
 

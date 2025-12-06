@@ -7,4 +7,7 @@ const referralSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+referralSchema.index({ referrer: 1 });
+referralSchema.index({ referredUser: 1 });
+
 module.exports = mongoose.model('Referral', referralSchema);
