@@ -21,6 +21,15 @@ const Home = () => {
             setShowPopup(true);
             sessionStorage.setItem('hasSeenRedeemPopup', 'true');
         }
+
+        // Reset unlocking state if user navigates back (BFCache)
+        const handlePageShow = (event) => {
+            if (event.persisted) {
+                setUnlocking(false);
+            }
+        };
+        window.addEventListener('pageshow', handlePageShow);
+        return () => window.removeEventListener('pageshow', handlePageShow);
     }, []);
 
     useEffect(() => {
