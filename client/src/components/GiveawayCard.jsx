@@ -7,6 +7,17 @@ const GiveawayCard = () => {
     const { user } = useContext(AuthContext);
     const [loading, setLoading] = useState(false);
 
+    // Reset loading state if user navigates back (BFCache)
+    React.useEffect(() => {
+        const handlePageShow = (event) => {
+            if (event.persisted) {
+                setLoading(false);
+            }
+        };
+        window.addEventListener('pageshow', handlePageShow);
+        return () => window.removeEventListener('pageshow', handlePageShow);
+    }, []);
+
     const handleJoin = async () => {
         setLoading(true);
         try {
@@ -79,8 +90,8 @@ const GiveawayCard = () => {
                         onClick={handleJoin}
                         disabled={loading || user?.hasJoinedGiveaway}
                         className={`font-bold py-2 px-4 rounded-lg text-sm shadow-lg hover:shadow-xl transition flex items-center gap-1 ${user?.hasJoinedGiveaway
-                                ? 'bg-green-500 text-white cursor-default'
-                                : 'bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-900'
+                            ? 'bg-green-500 text-white cursor-default'
+                            : 'bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-900'
                             }`}
                     >
                         {user?.hasJoinedGiveaway ? (
