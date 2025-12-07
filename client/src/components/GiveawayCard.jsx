@@ -23,6 +23,10 @@ const GiveawayCard = () => {
                     paymentSessionId: data.payment_session_id,
                     redirectTarget: "_self"
                 });
+            } else {
+                console.error('No payment session ID received');
+                alert('Failed to initiate payment. Please try again.');
+                setLoading(false);
             }
         } catch (error) {
             console.error('Giveaway Payment Error', error);
@@ -71,14 +75,13 @@ const GiveawayCard = () => {
                         <p className="text-xs text-indigo-200">Entry Fee</p>
                         <p className="text-xl font-bold text-white">₹10 <span className="text-[10px] font-normal text-indigo-300">/ entry</span></p>
                     </div>
-                    <button 
+                    <button
                         onClick={handleJoin}
                         disabled={loading || user?.hasJoinedGiveaway}
-                        className={`font-bold py-2 px-4 rounded-lg text-sm shadow-lg hover:shadow-xl transition flex items-center gap-1 ${
-                            user?.hasJoinedGiveaway 
-                            ? 'bg-green-500 text-white cursor-default' 
-                            : 'bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-900'
-                        }`}
+                        className={`font-bold py-2 px-4 rounded-lg text-sm shadow-lg hover:shadow-xl transition flex items-center gap-1 ${user?.hasJoinedGiveaway
+                                ? 'bg-green-500 text-white cursor-default'
+                                : 'bg-gradient-to-r from-yellow-400 to-orange-500 text-indigo-900'
+                            }`}
                     >
                         {user?.hasJoinedGiveaway ? (
                             <span>Winners Announced on 1 Jan 🏆</span>
@@ -89,7 +92,7 @@ const GiveawayCard = () => {
                         )}
                     </button>
                 </div>
-                
+
                 <p className="text-[9px] text-indigo-300 mt-3 text-center opacity-70">
                     *Winners selected randomly. T&C Apply.
                 </p>
