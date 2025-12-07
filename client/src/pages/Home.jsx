@@ -197,17 +197,7 @@ const Home = () => {
                 </div>
             </div>
 
-            <a href="https://www.instagram.com/coupon_factory1?igsh=ZTJ2eHB0YzZzNHYx" target="_blank" rel="noopener noreferrer" className="block bg-white p-3 rounded-xl shadow-sm border border-gray-100 mb-6 flex items-center justify-between hover:bg-gray-50">
-                <div className="flex items-center gap-3">
-                    <div className="bg-gradient-to-tr from-yellow-400 to-pink-500 p-0.5 rounded-full">
-                        <div className="bg-white p-1 rounded-full">
-                            <Instagram size={16} className="text-gray-700" />
-                        </div>
-                    </div>
-                    <span className="font-medium text-sm">Follow Instagram Page</span>
-                </div>
-                <ExternalLink size={16} className="text-gray-400" />
-            </a>
+
 
             <section className="mt-4 mb-8 rounded-2xl bg-white shadow-md px-4 py-4">
                 <h2 className="text-sm font-semibold text-slate-800 mb-3">Brand Coupons</h2>

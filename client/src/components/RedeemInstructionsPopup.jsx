@@ -36,21 +36,11 @@ const RedeemInstructionsPopup = ({ onClose }) => {
                     </div>
 
                     <div className="flex items-start gap-3">
-                        <div className="bg-pink-100 p-2 rounded-full text-pink-600 mt-1">
-                            <Instagram size={20} />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-gray-800 text-sm">Step 3: Follow Us</h3>
-                            <p className="text-xs text-gray-600">Follow our official Instagram page <span className="font-bold">@couponfactory</span>.</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
                         <div className="bg-purple-100 p-2 rounded-full text-purple-600 mt-1">
                             <UserCheck size={20} />
                         </div>
                         <div>
-                            <h3 className="font-bold text-gray-800 text-sm">Step 4: Verify & Redeem</h3>
+                            <h3 className="font-bold text-gray-800 text-sm">Step 3: Verify & Redeem</h3>
                             <p className="text-xs text-gray-600">Go to your Profile, upload a screenshot of your story to verify and redeem your reward!</p>
                         </div>
                     </div>
